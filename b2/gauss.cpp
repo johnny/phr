@@ -7,11 +7,11 @@ typedef std::vector<double> dv1D;
 typedef std::vector<dv1D> dv2D;
 typedef std::vector<dv2D> dv3D;
 
-double gauss(dv3D U){
+double gauss(int n){
   static double sum;
   static int betas[7][3] = {{0,0,1},{0,1,0},{1,0,0},{0,1,1},{1,0,1},{1,1,0},{1,1,1}};
   int misses;  // nur temporaer drin. ich will versuchen direkt die Anzahl der Operationen anzugeben. Siehe ops in main
-  int n = (int)U.size();
+  dv3D U = create_matrix(n);
 
   struct timeval timer;
   reset_timer(&timer);
@@ -67,8 +67,8 @@ int main(int argc, char* argv[])
     gauss_blocked_total_time = 0;
 
     for(int i = 0; i<runs;i++){
-      gauss_total_time += gauss(create_matrix(n));
-      gauss_blocked_total_time += gauss_blocked(create_matrix(n));
+      gauss_total_time += gauss(n);
+      gauss_blocked_total_time += gauss_blocked(n);
     }
     gauss_relative_time = gauss_total_time/runs;
     gauss_blocked_relative_time = gauss_blocked_total_time/runs;
