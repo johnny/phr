@@ -2,10 +2,13 @@
 #include "timer.h"
 #include <vector>
 #include <stdlib.h>
+#include <math.h>
 
 typedef std::vector<double> dv1D;
 typedef std::vector<dv1D> dv2D;
 typedef std::vector<dv2D> dv3D;
+
+dv3D create_matrix(int n);
 
 double gauss(int n){
   static double sum;
@@ -36,8 +39,37 @@ double gauss(int n){
   return get_timer(timer);
 }
 
-double gauss_blocked(dv3D U){
-  return 0; // TODO
+double gauss_blocked(int n, int blocksize){
+  static double sum;
+  static int betas[7][3] = {{0,0,1},{0,1,0},{1,0,0},{0,1,1},{1,0,1},{1,1,0},{1,1,1}};
+  int misses;  // nur temporaer drin. ich will versuchen direkt die Anzahl der Operationen anzugeben. Siehe ops in main
+  int start;
+  dv3D U = create_matrix(n);
+  int blocks = n/blocksize;
+  
+  struct timeval timer;
+  reset_timer(&timer);
+for(int r = 0; r<blocks;r++){
+  start = r*blocks;
+  for(int m = 0; m<n;m++){
+    misses = 0;
+    for(int a1 = start; a1<(start+blocksize);a1++)
+      for(int a2 = start; a2<(start+blocksize);a2++)
+        for(int a3 = start; a3<(start+blocksize);a3++){
+          sum = 0;
+          for(int i = 0; i<7;i++) // Summe in der klammer
+            if( a1-betas[i][0] >= 0 && a2-betas[i][1] >= 0 && a3-betas[i][2] >= 0 && // sonst gibt es segfaults
+                a1+betas[i][0] < n && a2+betas[i][1] < n && a3+betas[i][2] < n)
+              sum += U[a1-betas[i][0]][a2-betas[i][1]][a3-betas[i][2]] + U[a1+betas[i][0]][a2+betas[i][1]][a3+betas[i][2]];
+            else
+              misses++; // zaehle die nicht beruecksichtigten terme mit
+
+          U[a1][a2][a3] = sum/26;
+        }
+  }
+}
+  std::cout << misses << std::endl;
+  return get_timer(timer);
 }
 
 dv3D create_matrix(int n){
@@ -61,14 +93,14 @@ int main(int argc, char* argv[])
   int end = 41;//atoi(argv[2]);
   int runs = 1;//atoi(argv[3]);
   int stepwidth = 10;
-
+  int blocksize = 10;
   for(long n = start; n<end;n+=stepwidth){
     gauss_total_time = 0;
     gauss_blocked_total_time = 0;
 
     for(int i = 0; i<runs;i++){
       gauss_total_time += gauss(n);
-      gauss_blocked_total_time += gauss_blocked(n);
+      gauss_blocked_total_time += gauss_blocked(n,blocksize);
     }
     gauss_relative_time = gauss_total_time/runs;
     gauss_blocked_relative_time = gauss_blocked_total_time/runs;
