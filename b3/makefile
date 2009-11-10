@@ -16,3 +16,5 @@ dyn102: a2uebung8_dyn102.c
 
 c: c.c
 	g++ c.c -o c -O3 -funroll-loops -fopenmp -g
+clean:
+	rm -f *.o
