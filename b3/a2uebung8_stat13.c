@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 			mat2[p]=(int *) malloc(sizeof(int)*N);
 			mat3[p]=(int *) malloc(sizeof(int)*N);
 		}
-		int c,m;
+		int c,m,j,k;
 		double tall;
 		for(m=1;m<=16;m*=2){
 			
@@ -33,12 +33,10 @@ int main(int argc, char** argv)
 
 			// Mehrfacher Schleifendurchlauf fuer gemitteltes Ergebnis
 			for(c=0;c<5;c++){
-				#pragma omp parallel
-				{
 				// Timer setzen
 				double tstart = omp_get_wtime();
 				// Matrizen multiplizieren
-				#pragma omp for schedule (static,13)
+				#pragma omp parallel for schedule (static,13) shared(mat1,mat2,mat3) private(j,k)
 				for(int i=0;i<N;i++){
 					for(int j=0;j<N;j++){
 						for(int k=0;k<N;k++){
@@ -50,7 +48,6 @@ int main(int argc, char** argv)
 				//Timer stoppen und ausgeben
 				double tend = omp_get_wtime();
 				tall += tend-tstart;
-				}
 			}
 			printf("static,13 - m: %d n: %d time: %f\n",m,500,tall/c);
 			tall=0;
