@@ -7,27 +7,29 @@
 
 int main(int argc, char** argv)
 {
-	#ifdef _OPENMP
 	int n;
 	for(n=1;n<4;n++){
 		int N=128*(int)pow(2,n);
-		int* mat1;
-		int* mat2;
-		int* mat3;
-		mat1 = (int *) malloc(sizeof(int)*N*N);
-		mat2 = (int *) malloc(sizeof(int)*N*N);
-		mat3 = (int *) malloc(sizeof(int)*N*N);
+		int p;
+                int** mat1=(int **) malloc(sizeof(int*)*N);
+                int** mat2=(int **) malloc(sizeof(int*)*N);
+                int** mat3=(int **) malloc(sizeof(int*)*N);
+		for(p=0;p<N;p++){
+			mat1[p]=(int *) malloc(sizeof(int)*N);
+			mat2[p]=(int *) malloc(sizeof(int)*N);
+			mat3[p]=(int *) malloc(sizeof(int)*N);
+		}
 		int k,i,j,c,m;
 		double tall;
 		for(m=0;m<11;m++){
-			#pragma omp_set_num_threads((int)pow(2,m));
+			omp_set_num_threads((int)pow(2,m));
 
 			// Matrizen initialisieren
 			for(j=0;j<N;j++){
 				for(k=0;k<N;k++){
-					mat1[j+k*N]=k+j;
-					mat2[j+k*N]=k+j;
-					mat3[j+k*N]=k+j;
+					mat1[j][k]=k+j;
+					mat2[j][k]=k+j;
+					mat3[j][k]=k+j;
 				}
 			}
 
@@ -41,7 +43,7 @@ int main(int argc, char** argv)
 				for(i=0;i<N;i++){
 					for(j=0;j<N;j++){
 						for(k=0;k<N;k++){
-							mat3[i+j*N]+=mat1[i+k*N]*mat2[k+j*N];
+							mat3[i][j]+=mat1[i][k]*mat2[k][j];
 						}
 					}
 				}
@@ -56,6 +58,5 @@ int main(int argc, char** argv)
 		free(mat2);
 		free(mat3);
 	}
-	#endif
 	return 0;
 }
