@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 				double tend = omp_get_wtime();
 				tall += tend-tstart;
 			}
-			printf("m: %d n: %d time: %f\n",(int)pow(2,m),128*pow(2,n),tall/c);
+			printf("m: %d n: %d time: %f\n",(int)pow(2,m),128*(int)pow(2,n),tall/c);
 		}
 		free(mat1);
 		free(mat2);
