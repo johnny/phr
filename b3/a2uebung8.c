@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 	// Timer setzen
 	double tstart = omp_get_wtime();
 	// Matrizen multiplizieren
-#pragma omp parallel for schedule (static,8) private(j,k) shared(mat3,mat1,mat2)
+        #pragma omp parallel for schedule (static) private(j,k) shared(mat3,mat1,mat2)
 	for(i=0;i<N;i++){
 	  for(j=0;j<N;j++){
 	    for(k=0;k<N;k++){
@@ -59,9 +59,9 @@ int main(int argc, char** argv)
       else
 	printf("%d %4d %f\n",(int)pow(2,m),128*(int)pow(2,n),tall/c);
     }
-    //    free(mat1);
-    //    free(mat2);
-    //    free(mat3);
+    free(mat1);
+    free(mat2);
+    free(mat3);
   }
   return 0;
 }
