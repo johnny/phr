@@ -13,3 +13,6 @@ d: a2uebung8_dyn13.c
 
 e: a2uebung8_dyn102.c
 	g++ a2uebung8_dyn102.c -o dyn102 -O3 -funroll-loops -fopenmp
+
+test: example.c
+	g++ example.c -o test -O3 -funroll-loops -fopenmp
