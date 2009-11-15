@@ -20,9 +20,9 @@ namespace TT {
     while(!value()){
       printf("\t has to wait %i\n",value());
       wait();
-      printf("\t should go %i\n",value());
+//      printf("\t should go %i\n",value());
       // aquire();
-      printf("\t should go after aquired %i\n",value());
+//      printf("\t should go after aquired %i\n",value());
     }
     printf("\t P decrements\n");
     --value();
@@ -35,13 +35,10 @@ namespace TT {
     printf("V inside\n");
     aquire();
     printf("V aquired\n");
-    if(!value()){
-      printf("\t V signals\n");
-      signal();
-    }
-    printf("\t V increments\n");
-    printf("\t value before %i\n",value());
+    printf("\t V: value before %i\n",value());
     ++value();
+    printf("\t V increments\n");
+    signal();
     printf("\t value after %i\n",value());
     release();
   }
