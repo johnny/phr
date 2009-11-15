@@ -2,7 +2,9 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 // check primeness of n, brute force method
 inline bool is_prime(int n)
 {
@@ -43,15 +45,21 @@ int main(int argc, char** argv)
   int N = atoi(argv[1]);
 
   // vector storing number of found pairs for each number
+double tall;
+for(int g=0;g<10;g++){
   std::vector<int> goldbach(N, 0);
 
   // find and count Goldbach pairs
+  double tstart = omp_get_wtime();
+  #pragma omp parallel for schedule(guided)
   for (int i=1; i<=N; i++)
     goldbach[i-1] = goldbach_pairs(i);
-
+  double tend = omp_get_wtime();
   // output number of Goldbach pairs
-  for (int i=0; i<goldbach.size(); ++i)
-    std::cout << i+1 << " Number of Goldbach pairs:  " << goldbach[i] << std::endl;
-
+/*  for (int i=0; i<goldbach.size(); ++i)
+    std::cout << i+1 << " Number of Goldbach pairs:  " << goldbach[i] << std::endl;*/
+  tall+=tend-tstart;
+}
+  printf("%d %f\n",N,tall/10);
   return 0;
 }

@@ -1,0 +1,8 @@
+set xlabel "m"
+set ylabel "Zeit"
+set logscale x
+
+plot "goldbach_op.dat" using 1:2 smooth csplines title 'ohne Parallelität' with lines, \
+   "goldbach_static.dat" using 1:2 smooth csplines title 'static scheduler' with lines,\
+   "goldbach_dynamic.dat" using 1:2 smooth csplines title 'dynamic scheduler' with lines,\
+   "goldbach_guided.dat" using 1:2 smooth csplines title 'guided scheduler' with lines
