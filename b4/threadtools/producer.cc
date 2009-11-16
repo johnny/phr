@@ -2,14 +2,13 @@
 
 namespace TT {
 
-  Producer::Producer(double* buf,Semaphore* full,Semaphore* empty,int* front, int* rear, int k) : BasicThread()
+  Producer::Producer(double* buf,Semaphore* empty,Semaphore* full,int k,long int runs) : BasicThread()
   {
     this->buf = buf;
     this->full = full;
     this->empty = empty;
-    this->front = front;
-    this->rear = rear;
     this->k = k;
+    this->runs = runs;
   }
 
   Producer::~Producer()
@@ -19,20 +18,19 @@ namespace TT {
 
   void Producer::run()
   {
-    double t;
-    while(1){
-      createOrder(&t);
+    double i;
+    double* position = buf;
+    for(i=0;i<runs;++i,++position){
       empty->P();
-      buf[*front] = t;
-      *front = (*front+1)%k;
+
+      if(position == &buf[k]) // Pointer zuruecksetzen
+	position = buf;
+
+      *position = i;
+      printf("Order sent: %f\n",i);
+
       full->V();
     }
-  }
-
-  void Producer::createOrder(double* order)
-  {
-    *order = 12.0; // welchen Wert nimmt man da? Zufallswert?
-    printf("Order sent: %f\n",*order);
   }
 
 }

@@ -2,14 +2,13 @@
 
 namespace TT {
 
-  Consumer::Consumer(double* buf,Semaphore* full,Semaphore* empty,int* front, int* rear, int k) : BasicThread()
+  Consumer::Consumer(double* buf,Semaphore* empty,Semaphore* full,int k,long int runs) : BasicThread()
   {
     this->buf = buf;
     this->full = full;
     this->empty = empty;
-    this->front = front;
-    this->rear = rear;
     this->k = k;
+    this->runs = runs;
   }
 
   Consumer::~Consumer()
@@ -19,18 +18,17 @@ namespace TT {
 
   void Consumer::run()
   {
-    double t;
-    while(1){
+    double* position = buf;
+    for(double i=0;i<runs;++i,++position){
       full->P();
-      t = buf[*rear];
-      *rear = (*rear+1)%k;
-      empty->V();
-      manageOrder(&t);
-    }
-  }
 
-  void Consumer::manageOrder(double* order){
-    printf("Order received: %f\n",*order);
+      if(position == &buf[k]) // Pointer zuruecksetzen
+	position = buf;
+
+      printf("Order received: %f\n",*position);
+
+      empty->V();
+    }
   }
 
 }
