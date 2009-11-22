@@ -25,6 +25,9 @@ RING_OBJECTS  = ring.o basicthread.o semaphore.o condition.o mutex.o barrier.o f
 PRODCONS_APPL	 = producerconsumer
 PRODCONS_OBJECTS = basicthread.o semaphore.o condition.o mutex.o barrier.o flag.o producer.o consumer.o prodcons.o
 
+CONSUMER_APPL    = consumer
+CONSUMER_OBJECTS = basicthread.o semaphore.o condition.o mutex.o barrier.o flag.o Consumer.o
+
 all : $(EXAMPLE_APPL) $(PETERSON_APPL) $(CHECKPETERSON_APPL) $(SCALARPRODUCT_APPL) $(RING_APPL) $(PRODCONS_APPL)
 
 $(EXAMPLE_APPL) : $(EXAMPLE_OBJECTS) Makefile
@@ -44,6 +47,9 @@ $(RING_APPL) : $(RING_OBJECTS) Makefile
 
 $(PRODCONS_APPL) : $(PRODCONS_OBJECTS) Makefile
 	$(LINK) $(LLDFLAGS) -o $(PRODCONS_APPL) $(PRODCONS_OBJECTS) $(LIBS)
+
+$(CONSUMER_APPL) : $(CONSUMER_OBJECTS) Makefile
+	$(LINK) $(LLDFLAGS) -o $(CONSUMER_APPL) $(CONSUMER_OBJECTS) $(LIBS)
 
 .c.o:
 	$(COMPILE) $(CFLAGS) $<
