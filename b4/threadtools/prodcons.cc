@@ -4,7 +4,7 @@
 
   int main(int argc, char* argv[])
   {
-    int k = 20;
+    int k = 2;
     TT::Semaphore empty = TT::Semaphore(k);
     TT::Semaphore full = TT::Semaphore(0);
     double* buf = (double*)malloc(sizeof(double)*k);
