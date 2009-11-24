@@ -7,6 +7,11 @@ b4/threadtools/checkpeterson
 b4/threadtools/peterson
 b4/threadtools/ring
 b4/threadtools/scalarproduct
+b4/threadtools/producerconsumer
+b4/goldbach
+b5/u13/ring
+b5/u14/pis
+b5/u14/pim
 
 
 # Binaries
@@ -15,4 +20,4 @@ b4/threadtools/scalarproduct
 # tempfiles
 *[~#]
 .#*
-
+mpihosts

@@ -1,0 +1,9 @@
+set xlabel "Anzahl der Intervalle"
+set ylabel "Fehler"
+set logscale x
+set logscale y
+
+plot "plot.dat" using 1:2 title 'parallel mit 5 Prozessen' with linespoints, \
+   "plot.dat" using 1:4 title 'parallel mit 10 Prozessen' with linespoints, \
+   "plot.dat" using 1:5 title 'parallel mit 30 Prozessen' with linespoints, \
+   "plot.dat" using 1:3 title 'sequentiell' with linespoints
