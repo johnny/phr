@@ -37,31 +37,10 @@ void init(double* x, double* b, double* A, long n)
   }
 }
 
-// checke einen Vektor
-void output(double* x, long n)
-{
-  long i;
-  for (i=0; i<n; i++)
-    fprintf(stdout, "%.4e ", x[i]);
-  fprintf(stdout, "\n");
-}
-
 // Jacobi-Schritt
 void jacobi(double* xneu, const double* const xalt, const double* const b, const double* const A, long start, long width, long n)
 {
   int i=0, j=0;
-/*printf("start %d\n",start);
-printf("width %d\n",width);
-printf("xneu(0) %f\n",xneu[0]);
-printf("xneu(1) %f\n",xneu[1]);
-printf("xalt(0) %f\n",xalt[0]);
-printf("xalt(1) %f\n",xalt[1]);
-printf("b(0) %f\n",b[0]);
-printf("b(1) %f\n",b[1]);
-printf("A(0) %f\n",A[0]);
-printf("A(0) %f\n",A[1]);
-printf("A(0) %f\n",A[2]);
-printf("A(0) %f\n",A[3]);*/
 
   for (i=0; i<width; ++i)
   {
@@ -84,7 +63,6 @@ printf("A(0) %f\n",A[3]);*/
     }
     else
       xneu[i] /= A[(i+start)*n+(i+start)];
-//      printf("xneu[%d] after %f\n",i+start,xneu[i+start]);
   }
 }
 
@@ -159,9 +137,6 @@ int main(int argc, char **argv)
   // Jacobi-Schritte
   for (it=1; it<((long) (maxIt/2)+1); it++)
   {
-    // Trick um das Umkopieren x^{m} = y zu sparen:
-    // 2 Jacobi-Schritte, Loesung x^(m) ist dann
-    // abwechselnd in x oder y
     MPI_Bcast(x,n,MPI_DOUBLE,0,MPI_COMM_WORLD);
     jacobi(yy,x,b,A,rank*sendcounts[0],sendcounts[rank],n);
     MPI_Barrier(MPI_COMM_WORLD);
@@ -172,7 +147,6 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Gatherv(xx,sendcounts[rank],MPI_DOUBLE,x,sendcounts,senddispls,MPI_DOUBLE,0,MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
-    //output(x, n);
 
     if(rank==0){
       // Konvergenz-Check und Ende Zeitmessung
