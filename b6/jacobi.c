@@ -30,15 +30,15 @@ double max_norm(const double* const x, const double* const b, const double* cons
 void init(double* x, double* b, double* A, long n)
 {
   long i,j;
-
+  srand ( time(NULL) );
   for (i=0; i<n; i++)
   {
     x[i] = 0.0;
     b[i] = 1.0;
-    for (j=0; j<n; j++)
-      A[i*n+j] = 0.0;
-
-    A[i*n+i] = 3.0;
+    for (j=0; j<n; j++){
+      A[i*n+j] = (double)rand()%10;
+    }
+    //A[i*n+i] = 3.0;
   }
 }
 
@@ -125,10 +125,6 @@ int main(int argc, char **argv)
     // Trick um das Umkopieren x^{m} = y zu sparen:
     // 2 Jacobi-Schritte, Loesung x^(m) ist dann
     // abwechselnd in x oder y
-    printf("A(0,0): %f\n",A[0]);
-    printf("A(0,1): %f\n",A[1]);
-    printf("A(1,0): %f\n",A[2]);
-    printf("A(1,1): %f\n",A[3]);
     jacobi(y,x,b,A,n);
     jacobi(x,y,b,A,n);
     //output(x, n);
