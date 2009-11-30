@@ -1,12 +1,8 @@
-//******************************************************************************
-// jacobi-seq.c
-//
-// Jacobi-Iteration mit (vollbesetzter) Matrix, sequentielle Variante
-//******************************************************************************
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include "timer.h"
+#include<mpi.h>
 
 // Maximums-Norm
 double max_norm(const double* const x, const double* const b, const double* const A, long n)
@@ -30,18 +26,13 @@ double max_norm(const double* const x, const double* const b, const double* cons
 void init(double* x, double* b, double* A, long n)
 {
   long i,j;
-  srand ( time(NULL) );
 
   for (i=0; i<n; i++)
   {
     x[i] = 0.0;
-    b[i] = 1.0;
-    for (j=0; j<n; j++){
-      A[i*n+j] = (double)rand()%10;
-    }
-    //A[i*n+i] = 3.0;
+    b[i] = i;
     for (j=0; j<n; j++)
-      A[i*n+j] = 0.0;
+      A[i*n+j] = 2.0; // hier gibts nen Fehler
 
     A[i*n+i] = 3.0;
   }
@@ -57,11 +48,12 @@ void output(double* x, long n)
 }
 
 // Jacobi-Schritt
-void jacobi(double* xneu, const double* const xalt, const double* const b, const double* const A, long n)
+void jacobi(double* xneu, const double* const xalt, const double* const b, const double* const A, long n, int rank, int procs)
 {
-  int i=0, j=0;
+  long i=0, j=0;
+  long x=(long)ceil(1.0*n/procs);
 
-  for (i=0; i<n; ++i)
+  for (i=rank*x; i<fmin((rank+1)*x,n); ++i)
   {
     xneu[i] = 0.0;
 
@@ -85,6 +77,20 @@ void jacobi(double* xneu, const double* const xalt, const double* const b, const
   }
 }
 
+bool tolerance_reached(double* x, double* b, double* A, long n){
+  const double eps = 1e-5; // Abbruchbedingung
+  double diff;
+
+  diff = max_norm(x,b,A,n);
+  if(false)
+    fprintf(stdout, "Norm(res): %.16e\n", diff);
+
+  return diff < eps;
+}
+void d(int i){
+  printf("step %i\n",i);
+}
+
 //*****************************************************************************
 // main
 //*****************************************************************************
@@ -93,15 +99,27 @@ int main(int argc, char **argv)
   const int maxIt = 10000; // max Iterationen des Verfahrens
   long it;                 // Schleifenzaehler
   long n;                  // Problemgroesse in einer Richtung
+  int i;
+  long interval;
 
   double *x;               // Unbekannte
   double *y;               // alte Unbekannte
   double *b;               // rechte Seite
   double *A;               // Matrix
 
-  const double eps = 1e-5; // Abbruchbedingung
   double diff;             // Maximumsnorm des Abstandes zweier Loesungen
   double t = 0.0;          // fuer die Zeitmessung
+
+  int rank, procs;
+  struct timeval timer;
+  
+  MPI_Status status;
+  MPI_Init(&argc, &argv);
+
+  /* Get own rank and total number of processes */
+  MPI_Comm_size(MPI_COMM_WORLD, &procs);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
 
   // Lese Laenge des Unbekannten-Vektors x
   if (argc != 2)
@@ -109,7 +127,7 @@ int main(int argc, char **argv)
     fprintf(stderr, "Syntax: %s <n>\n", argv[0]);
     exit (1);
   }
-  n = atoi(argv[1]);
+  n = atol(argv[1]);
 
   // allokiere Speicher fuer A, x, y und b
   x = (double *) malloc(sizeof(double)*n);   // alter Vektor x
@@ -120,34 +138,41 @@ int main(int argc, char **argv)
   // Initialisiere A, b und x
   init(x, b, A, n);
 
-  // Beginn Zeitmessung
-  struct timeval timer;
-  reset_timer(&timer);
+  if(!rank){
+    // Beginn Zeitmessung
+    reset_timer(&timer);
+  }
+  it=0;
 
-  // Jacobi-Schritte
-  for (it=1; it<((long) (maxIt/2)+1); it++)
-  {
-    // Trick um das Umkopieren x^{m} = y zu sparen:
-    // 2 Jacobi-Schritte, Loesung x^(m) ist dann
-    // abwechselnd in x oder y
-    jacobi(y,x,b,A,n);
-    jacobi(x,y,b,A,n);
+  while(!tolerance_reached(x,b,A,n) && it<((long) (maxIt))){
+
+    jacobi(y,x,b,A,n,rank,procs);
     //output(x, n);
 
-    // Konvergenz-Check und Ende Zeitmessung
-    diff = max_norm(x,b,A,n);
-    fprintf(stdout, "Norm(res): %.16e\n", diff);
-    if (diff < eps)
-    {
-      t = get_timer(timer);
-      fprintf(stdout, "Iter: %d, t: %f s, Norm(res): %.16e\n", (2*it), t, diff);
-      break;
-    }
+    interval=(long)ceil(1.0*n/procs);
+
+    for(i=0;i<procs;i++)
+      if((i+1)*interval>n){
+	MPI_Bcast(&y[i*interval], n-i*interval, MPI_DOUBLE, i, MPI_COMM_WORLD );
+	break;
+      }
+      else{
+	MPI_Bcast(&y[i*interval], interval, MPI_DOUBLE, i, MPI_COMM_WORLD );
+      }
+
+    x=y;
+    ++it;
   }
+
+  if(!rank){
+    t = get_timer(timer);
+    fprintf(stdout, "Iter: %d, t: %f s, Norm(res): %.16e\n", it+1, t, max_norm(x,b,A,n));
+  }
+
+  MPI_Finalize();
 
   // release memory
   free(x);
-  free(y);
   free(b);
   free(A);
 
