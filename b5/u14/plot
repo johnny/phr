@@ -2,6 +2,8 @@ set xlabel "Anzahl der Intervalle"
 set ylabel "Fehler"
 set logscale x
 set logscale y
+set term post enh
+set out "plot.eps"
 
 plot "plot.dat" using 1:2 title 'parallel mit 5 Prozessen' with linespoints, \
    "plot.dat" using 1:4 title 'parallel mit 10 Prozessen' with linespoints, \
