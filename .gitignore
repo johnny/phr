@@ -12,6 +12,8 @@ b4/goldbach
 b5/u13/ring
 b5/u14/pis
 b5/u14/pim
+b6/js
+b6/jm
 
 
 # Binaries
@@ -21,3 +23,5 @@ b5/u14/pim
 *[~#]
 .#*
 mpihosts
+.nfs*
+PI*
