@@ -50,13 +50,23 @@ void output(double* x, long n)
 void jacobi(double* xneu, const double* const xalt, const double* const b, const double* const A, long start, long width, long n)
 {
   int i=0, j=0;
+/*printf("xneu(0) %f\n",xneu[0]);
+printf("xneu(1) %f\n",xneu[1]);
+printf("xalt(0) %f\n",xalt[0]);
+printf("xalt(1) %f\n",xalt[1]);
+printf("b(0) %f\n",b[0]);
+printf("b(1) %f\n",b[1]);
+printf("A(0) %f\n",A[0]);
+printf("A(0) %f\n",A[1]);
+printf("A(0) %f\n",A[2]);
+printf("A(0) %f\n",A[3]);*/
 
-  for (i=0; i<n; ++i)
+  for (i=start; i<start+width; ++i)
   {
     xneu[i] = 0.0;
 
     // compute scalar product
-    for (j=start; j<start+width; ++j)
+    for (j=0; j<n; ++j)
       xneu[i] += A[i*n+j] * xalt[j];
 
     // subtract case i=j again
@@ -136,8 +146,8 @@ int main(int argc, char **argv)
   init(x, b, A, n);
 
   calcSendCounts(sendcounts,senddispls,n,psize);
-  xx = (double *) malloc(sizeof(double)*sendcounts[rank]);
-  yy = (double *) malloc(sizeof(double)*sendcounts[rank]);
+  xx = (double *) malloc(sizeof(double)*n);
+  yy = (double *) malloc(sizeof(double)*n);
 
   // Beginn Zeitmessung
   struct timeval timer;
@@ -149,23 +159,25 @@ int main(int argc, char **argv)
     // Trick um das Umkopieren x^{m} = y zu sparen:
     // 2 Jacobi-Schritte, Loesung x^(m) ist dann
     // abwechselnd in x oder y
-    MPI_Scatter(x,n,MPI_DOUBLE,xx,n,MPI_DOUBLE,0,MPI_COMM_WORLD);
-    jacobi(yy,xx,b,A,rank*sendcounts[0],sendcounts[rank],n);
+    MPI_Bcast(x,n,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    jacobi(yy,x,b,A,rank*sendcounts[0],sendcounts[rank],n);
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Gatherv(yy,sendcounts[rank],MPI_DOUBLE,y,sendcounts,senddispls,MPI_DOUBLE,0,MPI_COMM_WORLD);
-	printf("rank(%d) y(0): %f\n",rank,y[0]);
-	printf("rank(%d) y(1): %f\n",rank,y[1]);
-	printf("rank(%d) y(2): %f\n",rank,y[2]);
-	printf("rank(%d) y(3): %f\n",rank,y[3]);
+	//printf("rank(%d) y(0): %f\n",rank,y[0]);
+	//printf("rank(%d) y(1): %f\n",rank,y[1]);
+	//printf("rank(%d) y(2): %f\n",rank,y[2]);
+	//printf("rank(%d) y(3): %f\n",rank,y[3]);
     MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Scatter(y,n,MPI_DOUBLE,yy,n,MPI_DOUBLE,0,MPI_COMM_WORLD);
-    jacobi(xx,yy,b,A,rank*sendcounts[0],sendcounts[rank],n);
+    MPI_Bcast(y,n,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    jacobi(xx,y,b,A,rank*sendcounts[0],sendcounts[rank],n);
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Gatherv(xx,sendcounts[rank],MPI_DOUBLE,x,sendcounts,senddispls,MPI_DOUBLE,0,MPI_COMM_WORLD);
-        printf("rank(%d) x(0): %f\n",rank,x[0]);
-        printf("rank(%d) x(1): %f\n",rank,x[1]);
-        printf("rank(%d) x(2): %f\n",rank,x[2]);
-        printf("rank(%d) x(3): %f\n",rank,x[3]);
+	
+	//printf("rank(%d) x(0): %f\n",rank,x[0]);
+        //printf("rank(%d) x(1): %f\n",rank,x[1]);
+        //printf("rank(%d) x(2): %f\n",rank,x[2]);
+        //printf("rank(%d) x(3): %f\n",rank,x[3]);
+	
     MPI_Barrier(MPI_COMM_WORLD);
     //output(x, n);
 

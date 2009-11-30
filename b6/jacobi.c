@@ -37,7 +37,7 @@ void init(double* x, double* b, double* A, long n)
     x[i] = 0.0;
     b[i] = 1.0;
     for (j=0; j<n; j++){
-      A[i*n+j] = (double)rand()%10;
+      A[i*n+j] = (double)(rand()%10);
     }
     //A[i*n+i] = 3.0;
     for (j=0; j<n; j++)
@@ -132,7 +132,7 @@ int main(int argc, char **argv)
     // abwechselnd in x oder y
     jacobi(y,x,b,A,n);
     jacobi(x,y,b,A,n);
-    //output(x, n);
+    output(x, n);
 
     // Konvergenz-Check und Ende Zeitmessung
     diff = max_norm(x,b,A,n);
