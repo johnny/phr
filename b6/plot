@@ -1,0 +1,15 @@
+set xlabel "m"
+set ylabel "Zeit"
+set logscale x
+set logscale y
+set term png
+set out "plot.png"
+#"mpi1.dat" using 1:2 title '1 Prozess' with linespoints, 
+#"mpi2.dat" using 1:2 title '2 Prozesse' with linespoints,
+#"mpi4.dat" using 1:2 title '4 Prozesse' with linespoints,
+#"mpi8.dat" using 1:2 title '8 Prozesse' with linespoints,
+#"mpi16.dat" using 1:2 title '16 Prozesse' with linespoints,
+plot "speedup.dat" u 1:($2/$3) title 'Speedup 2' with linespoints,\
+   "speedup.dat" u 1:($2/$4) title 'Speedup 4' with linespoints,\
+   "speedup.dat" u 1:($2/$5) title 'Speedup 8' with linespoints,\
+   "speedup.dat" u 1:($2/$6) title 'Speedup 16' with linespoints
