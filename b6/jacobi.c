@@ -30,20 +30,15 @@ double max_norm(const double* const x, const double* const b, const double* cons
 void init(double* x, double* b, double* A, long n)
 {
   long i,j;
-  srand ( time(NULL) );
 
   for (i=0; i<n; i++)
   {
     x[i] = 0.0;
-    b[i] = 1.0;
-    for (j=0; j<n; j++){
-      A[i*n+j] = (double)(rand()%10);
-    }
-    //A[i*n+i] = 3.0;
+    b[i] = i;
     for (j=0; j<n; j++)
-      A[i*n+j] = 0.0;
+      A[i*n+j] = 1.0;
 
-    A[i*n+i] = 3.0;
+    A[i*n+i] = n+1;
   }
 }
 
@@ -85,6 +80,17 @@ void jacobi(double* xneu, const double* const xalt, const double* const b, const
   }
 }
 
+bool tolerance_reached(const double* x, const double* b, const double* A, const long n){
+  const double eps = 1e-5; // Abbruchbedingung
+  double diff;
+
+  diff = max_norm(x,b,A,n);
+  if(false)
+    fprintf(stdout, "Norm(res): %.16e\n", diff);
+
+  return diff < eps;
+}
+
 //*****************************************************************************
 // main
 //*****************************************************************************
@@ -93,6 +99,7 @@ int main(int argc, char **argv)
   const int maxIt = 10000; // max Iterationen des Verfahrens
   long it;                 // Schleifenzaehler
   long n;                  // Problemgroesse in einer Richtung
+  long i;
 
   double *x;               // Unbekannte
   double *y;               // alte Unbekannte
@@ -120,30 +127,27 @@ int main(int argc, char **argv)
   // Initialisiere A, b und x
   init(x, b, A, n);
 
+  it=0;
+
   // Beginn Zeitmessung
   struct timeval timer;
   reset_timer(&timer);
 
-  // Jacobi-Schritte
-  for (it=1; it<((long) (maxIt/2)+1); it++)
-  {
-    // Trick um das Umkopieren x^{m} = y zu sparen:
-    // 2 Jacobi-Schritte, Loesung x^(m) ist dann
-    // abwechselnd in x oder y
-    jacobi(y,x,b,A,n);
-    jacobi(x,y,b,A,n);
-    output(x, n);
+  while(!tolerance_reached(x,b,A,n) && it<((long) (maxIt))){
 
-    // Konvergenz-Check und Ende Zeitmessung
-    diff = max_norm(x,b,A,n);
-    fprintf(stdout, "Norm(res): %.16e\n", diff);
-    if (diff < eps)
-    {
-      t = get_timer(timer);
-      fprintf(stdout, "Iter: %d, t: %f s, Norm(res): %.16e\n", (2*it), t, diff);
+    jacobi(y,x,b,A,n);
+
+    if(tolerance_reached(y,b,A,n))
       break;
-    }
+    ++it;
+
+    jacobi(x,y,b,A,n);
+
+    ++it;
   }
+
+  t = get_timer(timer);
+  fprintf(stdout, "Iter: %d, t: %f s, Norm(res): %.16e\n", it, t, max_norm(x,b,A,n));
 
   // release memory
   free(x);

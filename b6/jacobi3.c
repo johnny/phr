@@ -31,7 +31,7 @@ void init(double* x, double* b, double* A, long n)
     x[i] = 0.0;
     b[i] = 1.0;
     for (j=0; j<n; j++)
-      A[i*n+j] = 0.0;
+      A[i*n+j] = 1.0;
 
     A[i*n+i] = 3.0;
   }

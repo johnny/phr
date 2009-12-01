@@ -32,9 +32,9 @@ void init(double* x, double* b, double* A, long n)
     x[i] = 0.0;
     b[i] = i;
     for (j=0; j<n; j++)
-      A[i*n+j] = 2.0; // hier gibts nen Fehler
+      A[i*n+j] = 1.0;
 
-    A[i*n+i] = 3.0;
+    A[i*n+i] = n+1;
   }
 }
 
@@ -47,13 +47,15 @@ void output(double* x, long n)
   fprintf(stdout, "\n");
 }
 
+long min(long a, long b){ return a <= b ? a : b;}
+
 // Jacobi-Schritt
 void jacobi(double* xneu, const double* const xalt, const double* const b, const double* const A, long n, int rank, int procs)
 {
   long i=0, j=0;
   long x=(long)ceil(1.0*n/procs);
 
-  for (i=rank*x; i<fmin((rank+1)*x,n); ++i)
+  for (i=rank*x; i<min((rank+1)*x,n); ++i)
   {
     xneu[i] = 0.0;
 
@@ -77,7 +79,7 @@ void jacobi(double* xneu, const double* const xalt, const double* const b, const
   }
 }
 
-bool tolerance_reached(double* x, double* b, double* A, long n){
+bool tolerance_reached(const double* x, const double* b, const double* A, const long n){
   const double eps = 1e-5; // Abbruchbedingung
   double diff;
 
@@ -87,9 +89,6 @@ bool tolerance_reached(double* x, double* b, double* A, long n){
 
   return diff < eps;
 }
-void d(int i){
-  printf("step %i\n",i);
-}
 
 //*****************************************************************************
 // main
@@ -97,7 +96,7 @@ void d(int i){
 int main(int argc, char **argv)
 {
   const int maxIt = 10000; // max Iterationen des Verfahrens
-  long it;                 // Schleifenzaehler
+  int it;                  // Schleifenzaehler
   long n;                  // Problemgroesse in einer Richtung
   int i;
   long interval;
@@ -138,18 +137,17 @@ int main(int argc, char **argv)
   // Initialisiere A, b und x
   init(x, b, A, n);
 
+  it=0;
+  interval=(long)ceil(1.0*n/procs);
+
   if(!rank){
     // Beginn Zeitmessung
     reset_timer(&timer);
   }
-  it=0;
 
-  while(!tolerance_reached(x,b,A,n) && it<((long) (maxIt))){
+  while(!tolerance_reached(x,b,A,n) && it<maxIt){
 
     jacobi(y,x,b,A,n,rank,procs);
-    //output(x, n);
-
-    interval=(long)ceil(1.0*n/procs);
 
     for(i=0;i<procs;i++)
       if((i+1)*interval>n){
@@ -160,19 +158,34 @@ int main(int argc, char **argv)
 	MPI_Bcast(&y[i*interval], interval, MPI_DOUBLE, i, MPI_COMM_WORLD );
       }
 
-    x=y;
+    if(tolerance_reached(y,b,A,n))
+      break;
+    ++it;
+
+    jacobi(x,y,b,A,n,rank,procs);
+
+    for(i=0;i<procs;i++)
+      if((i+1)*interval>n){
+	MPI_Bcast(&x[i*interval], n-i*interval, MPI_DOUBLE, i, MPI_COMM_WORLD );
+	break;
+      }
+      else{
+	MPI_Bcast(&x[i*interval], interval, MPI_DOUBLE, i, MPI_COMM_WORLD );
+      }
+
     ++it;
   }
 
   if(!rank){
     t = get_timer(timer);
-    fprintf(stdout, "Iter: %d, t: %f s, Norm(res): %.16e\n", it+1, t, max_norm(x,b,A,n));
+    fprintf(stdout, "Iter: %d, t: %f s, Norm(res): %.16e\n", it, t, max_norm(x,b,A,n));
   }
 
   MPI_Finalize();
 
   // release memory
   free(x);
+  free(y);
   free(b);
   free(A);
 
