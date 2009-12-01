@@ -79,6 +79,7 @@ void jacobi(double* xneu, const double* const xalt, const double* const b, const
   }
 }
 
+// Testet ob die Abbruchbedingung erfuellt ist
 bool tolerance_reached(const double* x, const double* b, const double* A, const long n){
   const double eps = 1e-5; // Abbruchbedingung
   double diff;
@@ -110,12 +111,11 @@ int main(int argc, char **argv)
   double t = 0.0;          // fuer die Zeitmessung
 
   int rank, procs;
-  struct timeval timer;
-  
+  double starttime, endtime; 
+
+  // MPI initialisierung
   MPI_Status status;
   MPI_Init(&argc, &argv);
-
-  /* Get own rank and total number of processes */
   MPI_Comm_size(MPI_COMM_WORLD, &procs);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -138,47 +138,50 @@ int main(int argc, char **argv)
   init(x, b, A, n);
 
   it=0;
-  interval=(long)ceil(1.0*n/procs);
+  interval=(long)ceil(1.0*n/procs); // Berechne die groesse des Teilabschnittes fuer jeden Prozess
 
+  // Nur Prozess 0 misst die Zeit
   if(!rank){
     // Beginn Zeitmessung
-    reset_timer(&timer);
+    start = MPI_Wtime(); 
   }
 
   while(!tolerance_reached(x,b,A,n) && it<maxIt){
 
     jacobi(y,x,b,A,n,rank,procs);
 
+    // Synchronisiere y
     for(i=0;i<procs;i++)
       if((i+1)*interval>n){
 	MPI_Bcast(&y[i*interval], n-i*interval, MPI_DOUBLE, i, MPI_COMM_WORLD );
 	break;
       }
-      else{
+      else
 	MPI_Bcast(&y[i*interval], interval, MPI_DOUBLE, i, MPI_COMM_WORLD );
-      }
 
     if(tolerance_reached(y,b,A,n))
       break;
     ++it;
 
+    // Zweimalige Ausfuehrung erspart Kopie von y nach x
     jacobi(x,y,b,A,n,rank,procs);
 
+    // Synchronisiere x
     for(i=0;i<procs;i++)
       if((i+1)*interval>n){
 	MPI_Bcast(&x[i*interval], n-i*interval, MPI_DOUBLE, i, MPI_COMM_WORLD );
 	break;
       }
-      else{
+      else
 	MPI_Bcast(&x[i*interval], interval, MPI_DOUBLE, i, MPI_COMM_WORLD );
-      }
 
     ++it;
   }
 
+  // Prozess 0 misst die Zeit
   if(!rank){
-    t = get_timer(timer);
-    fprintf(stdout, "Iter: %d, t: %f s, Norm(res): %.16e\n", it, t, max_norm(x,b,A,n));
+    end = MPI_Wtime(); 
+    fprintf(stdout, "Iter: %d, t: %f s, Norm(res): %.16e\n", it, end-start, max_norm(x,b,A,n));
   }
 
   MPI_Finalize();
