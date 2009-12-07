@@ -37,7 +37,19 @@ void init(double* x, double* b, double* A, long n)
   }
 }
 
-void iteration(double *u, double *b, long n)
+// Testet ob die Abbruchbedingung erfuellt ist
+bool tolerance_reached(const double* x, const double* b, const double* A, const long n){
+  const double eps = 1e-5; // Abbruchbedingung
+  double diff;
+
+  diff = max_norm(x,b,A,n);
+  if(false)
+    fprintf(stdout, "Norm(res): %.16e\n", diff);
+
+  return diff < eps;
+}
+
+void iteration(double *u, double *x, double *b, long n)
 {
 	int i;
 	for(i=0;i<n*n;i++){
@@ -56,6 +68,7 @@ int main(int argc, char* argv[])
 	int psize;
 	const int maxIt = 10000;
 	int it;
+	int xinh;
 	double* x;
 	double* b;
 	double* A;
@@ -77,10 +90,17 @@ int main(int argc, char* argv[])
 		init(x,b,A,n);
 		starttime = MPI_Wtime();
 	}
+
+	//groesse von x bestimmen
+	xinh = n/psize;
+	if(x%n!=0 && rank==psize-1)xinh+=x%n;
+
 	while(!tolerance_reached(x,b,A,n) && it<maxIt){
-		iteration(&A,&b,n);
-		if(tolerance_reached(y,b,A,n))
-			break;
+		//x-sync
+		for(c=0;c<psize;c++){
+			MPI_Bcast(&x,xinh,MPI_DOUBLE,rank,MPI_COMM_WORLD);
+		}
+		iteration(&A,&x,&b,n);
 		++it;
 	}
 
