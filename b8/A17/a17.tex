@@ -1,0 +1,25 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\begin{document}
+{\bf Aufgabe 17}\\
+{\bf a)}\\
+Die reine Kommunikationszeit in Abhängikeit der Problemgröße N errechnet sich nach folgendem Schema\ldots \\
+\ldots für einen Schritt ($t_k$ ist die Übertragungszeit):
+$$t_i(n) = \frac{n}{2^i}*t_k$$
+\ldots für die Gesamtheit aller Schritte:
+$$t(N,P) = N + \sum_{i=0}^{\frac{P}{2}-1}{\frac{n}{2^i}*t_k}$$
+\\
+{\bf b)}\\
+Die Rechenzeit in Abhängigkeit der Problemgröße N errechnet sich nach folgendem Schema\ldots \\
+\ldots für einen Schritt ($t_r$ ist Zeit für eine Multiplikation):
+$$t(N) = (N\log{N})*t_r$$
+\ldots für sie Gesamtheit aller Rechenschritte:
+$$t_{ges}(N,P) = N + \sum_{i=0}^{\frac{P}{2}-1}{\frac{N}{2^i}}t_k + (\frac{N\log{N}}{P})t_r$$
+\\
+{\bf c)}\\
+Für den SpeedUp ergibt sich:
+$$S(N,P) = \frac{N\log{N}}{N + \sum_{i=0}^{\frac{P}{2}-1}{\frac{N}{2^i}}t_k + (\frac{N\log{N}}{P})t_r}$$
+{\bf d)}
+Daraus resultiert folgende Isoeffizienzfunktion:\\
+(?)
+\end{document}

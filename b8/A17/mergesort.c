@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 void merge(int l, int r, int* a)
 {
 	int c, i,j,k;
@@ -22,6 +23,7 @@ int* Mergesort(int* myList, int n, int rank, int psize, int para)
 		return myList;
 	} else {
 		if(rank<psize-2 && para){
+			printf("sending with size %d\n",n/2);
 			MPI_Ssend(myList,n/2,MPI_INT,rank+2,0,MPI_COMM_WORLD);
 		} else Mergesort(myList,n/2,rank,psize,0);
 		Mergesort(&myList[n/2],n/2,rank,psize,0);
@@ -47,8 +49,12 @@ int main(int argc, char* argv[])
 	MPI_Init(&argc,&argv);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 	MPI_Comm_size(MPI_COMM_WORLD,&psize);
-
 	if(rank==0){
+		if(N<pow(psize,2)){
+			printf("Problemsize too small!\n");
+			MPI_Finalize();
+			exit(1);
+		}
 		// Liste mit Zufallswerten belegen
 		srand(time(0));
 		for(c=0;c<N;c++){
@@ -60,17 +66,19 @@ int main(int argc, char* argv[])
 		MPI_Recv(myList,N/2,MPI_INT,1,0,MPI_COMM_WORLD,&status);
 		merge(0,N-1,myList);
 		endtime = MPI_Wtime();
-		printf("Ergebnis:\n");
-		for(c=0;c<N;c++)
-			printf("%d%s",myList[c],c!=N-1 ? "," : "\n");
+		if(atoi(argv[2])==1){
+			printf("Ergebnis:\n");
+			for(c=0;c<N;c++)
+				printf("%d%s",myList[c],c!=N-1 ? "," : "\n");
+		}
 		printf("Laufzeit: %f\n",endtime-starttime);
 	} else {
-		int size = N/((rank+2)-(rank%2));
+		int size = N/pow(2,(rank-rank%2)/2+1);
 		MPI_Recv(myList,size,MPI_INT,rank==1 ? 0 : rank-2,0,MPI_COMM_WORLD,&status);
-		printf("(%d) Datenpaket empfangen. Laufe los...\n",rank);
+//		printf("(%d) Datenpaket empfangen %d. Laufe los...\n",rank,size);
 		Mergesort(myList,size,rank,psize,1);
 		MPI_Ssend(myList,size,MPI_INT,rank==1 ? 0 : rank-2,0,MPI_COMM_WORLD);
-		printf("(%d) Fertig sortiert. Schicke Ergebnis zurück...\n",rank);
+//		printf("(%d) Fertig sortiert. Schicke Ergebnis zurück...\n",rank);
 	}
 
 
