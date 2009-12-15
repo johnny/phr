@@ -1,6 +1,8 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \begin{document}
+\pagestyle{myheadings}
+\markright{PHLR - Blatt 8, Jonas von Andrian, Thomas Monninger}
 {\bf Aufgabe 17}\\
 {\bf a)}\\
 Die reine Kommunikationszeit in Abhängikeit der Problemgröße N errechnet sich nach folgendem Schema\ldots \\
@@ -20,6 +22,21 @@ $$t_{ges}(N,P) = N + \sum_{i=0}^{\frac{P}{2}-1}{\frac{N}{2^i}}t_k + (\frac{N\log
 Für den SpeedUp ergibt sich:
 $$S(N,P) = \frac{N\log{N}}{N + \sum_{i=0}^{\frac{P}{2}-1}{\frac{N}{2^i}}t_k + (\frac{N\log{N}}{P})t_r}$$
 {\bf d)}
-Daraus resultiert folgende Isoeffizienzfunktion:\\
-(?)
+Exisitiert eine Isoeffizienzfunktion muss gelten:
+$$E(W,P) =  \frac{1}{1+\frac{T_o(W,P)}{W}}$$
+und
+$$\lim\limits_{W \rightarrow \infty} E(W,P)=1$$
+und damit muss gelten, dass bei festem P der Overhead weniger als linear 
+anwächst. D.h., es muss gelten
+$$T_o(W,P)|_P=const < O(W)$$
+Das ist beim parallelen Mergesort der Fall, da für jeden zusätzlichen 
+Knoten (bzw. jedes Paar, es kommen ja immer 2 Knoten pro Schritt hinzu) 
+der Overhead abnimmt.\\
+Die gewünschten Testergebnisse traten leider nicht ein, da auf den 
+Poolrechnern das Programm immer mit einem Fehler abbricht (MPI\_RECV : 
+Message truncated). 
+Nachforschungen haben ergeben, dass es wohl an einem 
+Bug in der MPI-Implementierung liegt, da es auf dem lokalen Rechner 
+läuft (jedoch trat auch hier nicht das gewünschte Laufzeitverhalten 
+ein).
 \end{document}
