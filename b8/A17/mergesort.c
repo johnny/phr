@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+
 void merge(int l, int r, int* a)
 {
 	int c, i,j,k;
@@ -23,7 +24,7 @@ int* Mergesort(int* myList, int n, int rank, int psize, int para)
 		return myList;
 	} else {
 		if(rank<psize-2 && para){
-			printf("sending with size %d\n",n/2);
+//			printf("sending with size %d\n",n/2);
 			MPI_Ssend(myList,n/2,MPI_INT,rank+2,0,MPI_COMM_WORLD);
 		} else Mergesort(myList,n/2,rank,psize,0);
 		Mergesort(&myList[n/2],n/2,rank,psize,0);
