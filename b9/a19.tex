@@ -12,11 +12,11 @@
 \hline
 One-to-all & $(t_s + t_w \cdot n) ld P + t_h(P-1)$ & $ld P(t_s + t_w \cdot n) + t_h \cdot 2(\sqrt{P}-1)$ & $(t_s+t_h+t_w \cdot n) ld P$ \\
 \hline
-All-to-all-broadcast & $2 ld P(t_s+t_h)+2t_wn(P-1)$ & $2 ld P(t_s+t_h)+2t_wn(P-1)$ & $2 ld P(t_s+t_h)+2t_wn(P-1)$ \\
+All-to-all-broadcast & $(t_s + t_h + t_w \cdot n)(3P-2)$ & $(t_s + t_h + t_w \cdot n)(3P-2)$ & $2 ld P(t_s+t_h)+2t_wn(P-1)$ \\
 \hline
-One-to-all mit individuellen Nachrichten & & & $t_wn(P-1)$ \\
+One-to-all mit individuellen Nachrichten & $t_wn(P-1)$ & $t_wn(P-1)$ & $t_wn(P-1)$ \\
 \hline
-All-to-all mit individuellen Nachrichten & & & $2(t_s+t_h) ld P+t_wnP ld P$ \\
+All-to-all mit individuellen Nachrichten & $2(t_s+t_h) ld P+t_wnP ld P$ & $2(t_s+t_h) ld P+t_wnP ld P$ & $2(t_s+t_h) ld P+t_wnP ld P$ \\
 \hline
 \end{tabularx}
 {\bf b)}\\
