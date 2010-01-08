@@ -1,5 +1,45 @@
 #include <stdio.h>
 
+typedef double double3[3];
+typedef struct Body{
+        double m;
+        double3 x;
+        double3 v;
+        double3 a;
+}Body;
+
+void write_vtk_file_double2 (FILE *f, int n, Body b[], double t, double dt)
+{
+  int i;
+
+  /* header */
+  fprintf(f,"%s\n","# vtk DataFile Version 1.0");
+  fprintf(f,"NBODY %22.16g %22.16g\n",t,dt);
+  fprintf(f,"%s\n","ASCII");
+
+  /* points */
+  fprintf(f,"%s\n","DATASET POLYDATA");
+  fprintf(f,"%s %d %s\n","POINTS",n,"float");
+  for (i=0; i<n; i++)
+    fprintf(f,"%22.16g %22.16g %22.16g\n",b[i].x[0],b[i].x[1],b[i].x[2]);
+
+  /* vertices */
+  fprintf(f,"%s %d %d\n","VERTICES",n,2*n);
+  for (i=0; i<n; i++)
+    fprintf(f,"%d %d\n",1,i);
+
+  /* scalar data fields*/
+  fprintf(f,"%s %d\n","POINT_DATA",n);
+  fprintf(f,"%s\n","SCALARS mass float");
+  fprintf(f,"%s\n","LOOKUP_TABLE default");
+  for (i=0; i<n; i++)
+    fprintf(f,"%22.16g\n",b[i].m);
+
+  /* vector data */
+  fprintf(f,"%s\n","VECTORS velocity float");
+  for (i=0; i<n; i++)
+    fprintf(f,"%22.16g %22.16g %22.16g\n",b[i].v[0],b[i].v[1],b[i].v[2]);
+}
 
 void write_vtk_file_double (FILE *f, int n, double x[][3], double v[][3], double m[],
 			    double t, double dt)

@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
 typedef double double3[3];
-
+typedef struct Body{
+        double m;
+        double3 x;
+        double3 v;
+        double3 a;
+}Body;
 void cube (int n, long int seed, double size, double m0, double mdelta,  
 		double x[][3], double v[][3], double m[])
 {
@@ -126,6 +130,70 @@ void plummer (int n, long int seed,
       s[0] += m[i]*x[i][0];
       s[1] += m[i]*x[i][1];
       s[2] += m[i]*x[i][2];
+    }
+  printf("new center of mass: %g %g %g\n",s[0],s[1],s[2]);
+  printf("maximum radius: %g\n",maxr);
+}
+
+void plummer2 (int n, long int seed, Body b[])
+{
+  /* This is a copy from 
+     Pit Hut, Jun Makino: The Art of Computational Science, 
+     The Kali Code, vol. 5. Initial Conditions: Plummer's Model.
+  */ 
+  int i;
+  double radius,theta,phi,X,Y,velocity,maxr=-1.0;
+  const double Pi = 3.141592653589793238462643383279;
+  double s[3] = {0.0,0.0,0.0};
+  double t[3] = {0.0,0.0,0.0};
+  if (seed!=0) srand48(seed);
+  for (i=0; i<n; i++)
+    {
+      b[i].m = 1.0/n;
+      radius = 1.0/sqrt(pow(drand48(),-2.0/3.0)-1.0);
+      if (radius>maxr) maxr=radius;
+      theta = acos(-1.0+drand48()*2.0);
+      phi = drand48()*2.0*Pi;
+      b[i].x[0] = radius*sin(theta)*cos(phi);
+      b[i].x[1] = radius*sin(theta)*sin(phi);
+      b[i].x[2] = radius*cos(theta);
+      s[0] += b[i].m*b[i].x[0];
+      s[1] += b[i].m*b[i].x[1];
+      s[2] += b[i].m*b[i].x[2];
+      X = 0.0;
+      Y = 0.1;
+      while (Y>X*X*pow(1.0-X*X,3.5))
+	{
+	  X = drand48();
+	  Y = drand48()*0.1;
+	}
+      velocity = X*sqrt(2.0)*pow(1.0+radius*radius,-0.25);
+      theta = acos(-1.0+drand48()*2.0);
+      phi = drand48()*2.0*Pi;
+      b[i].v[0] = velocity*sin(theta)*cos(phi);
+      b[i].v[1] = velocity*sin(theta)*sin(phi);
+      b[i].v[2] = velocity*cos(theta);
+      t[0] += b[i].m*b[i].v[0];
+      t[1] += b[i].m*b[i].v[1];
+      t[2] += b[i].m*b[i].v[2];
+    }
+  printf("center of mass: %g %g %g\n",s[0],s[1],s[2]);
+  for (i=0; i<n; i++)
+    {
+      b[i].x[0] -= s[0]; 
+      b[i].x[1] -= s[1]; 
+      b[i].x[2] -= s[2]; 
+
+      b[i].v[0] -= t[0]; 
+      b[i].v[1] -= t[1]; 
+      b[i].v[2] -= t[2]; 
+    }
+  s[0]=s[1]=s[2]=0.0;
+  for (i=0; i<n; i++)
+    {
+      s[0] += b[i].m*b[i].x[0];
+      s[1] += b[i].m*b[i].x[1];
+      s[2] += b[i].m*b[i].x[2];
     }
   printf("new center of mass: %g %g %g\n",s[0],s[1],s[2]);
   printf("maximum radius: %g\n",maxr);

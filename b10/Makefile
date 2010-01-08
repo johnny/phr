@@ -12,17 +12,24 @@ tiled_MAIN = nbody_tiled
 tiled_SOURCES = io_vanilla.o generate_vanilla.o stopwatch.o
 tiled_LIOPTS = -lm
 
+tiled2_MAIN = nbody_tiled2
+tiled2_SOURCES = io_vanilla.o generate_vanilla.o stopwatch.o
+tiled2_LIOPTS = -lm
+
 openmp_MAIN = nbody_openmp
 openmp_SOURCES = io_vanilla.o generate_vanilla.o stopwatch.o
 openmp_LIOPTS = -lm -lgomp
 
-all : $(vanilla_MAIN) $(tiled_MAIN) $(openmp_MAIN)
+all : $(vanilla_MAIN) $(tiled_MAIN) $(openmp_MAIN) $(tiled2_MAIN)
 
 $(vanilla_MAIN): $(vanilla_MAIN).o $(vanilla_SOURCES) Makefile
 	$(CC) -o $(vanilla_MAIN) $(vanilla_MAIN).o $(vanilla_SOURCES) $(vanilla_LIOPTS)
 
 $(tiled_MAIN): $(tiled_MAIN).o $(tiled_SOURCES) Makefile
 	$(CC) -o $(tiled_MAIN) $(tiled_MAIN).o $(tiled_SOURCES) $(tiled_LIOPTS)
+
+$(tiled2_MAIN): $(tiled2_MAIN).o $(tiled2_SOURCES) Makefile
+	$(CC) -o $(tiled2_MAIN) $(tiled2_MAIN).o $(tiled2_SOURCES) $(tiled2_LIOPTS)
 
 $(openmp_MAIN): $(openmp_MAIN).o $(openmp_SOURCES) Makefile
 	$(CC) -o $(openmp_MAIN) $(openmp_MAIN).o $(openmp_SOURCES) $(openmp_LIOPTS)
