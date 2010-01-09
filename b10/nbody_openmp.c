@@ -38,7 +38,9 @@ void acceleration (int n, double3 x[], double m[], double3 a[])
   double invfact;
 
   /* compute acceleration exploiting symmetry */
+  #pragma omp parallel for
   for (i=0; i<n; i++)
+    #pragma omp parallel for
     for (j=i+1; j<n; j++) {
       /* compute distance vector */
       d0 = x[j][0]-x[i][0];
@@ -198,7 +200,7 @@ int main (int argc, char** argv)
   /* read everything */
   read_vtk_file_double(file,n,x,v,m,&t,&dt);
   fclose(file);
-  printf("loaded %d bodies\n",n);
+//  printf("loaded %d bodies\n",n);
 #else
   /* get initial values from one of the generator functions */
   x = calloc(n,sizeof(double3));
@@ -217,8 +219,8 @@ int main (int argc, char** argv)
   temp = calloc(n,sizeof(double3));
 
   /* write out the initial values */
-  sprintf(name,"%s_%06d.vtk",base,k/mod);
-  printf("writing %s \n",name);
+  sprintf(name,"parallel_%s_%06d.vtk",base,k/mod);
+//  printf("writing %s \n",name);
   file = fopen(name,"w");
   write_vtk_file_double(file,n,x,v,m,t,dt);
   fclose(file);
@@ -235,12 +237,12 @@ int main (int argc, char** argv)
       elapsed = stop-start;
       /* 13*n*(n-1)+24*n+3 FLOP from leaprog(), 1 from the t+=dt above */
       flop = mod*(13.0*n*(n-1.0)+24.0*n+4.0);
-      printf("%g seconds for %g ops = %g MFLOPS\n",
-             elapsed,flop,flop/elapsed/1E6);
+//      printf("%g seconds for %g ops = %g MFLOPS\n",
+      printf("%g MFLOPS\n",flop/elapsed/1E6);
 
       /* write output file */
-      sprintf(name,"%s_%06d.vtk",base,k/mod);
-      printf("writing %s \n",name);
+      sprintf(name,"parallel_%s_%06d.vtk",base,k/mod);
+//      printf("writing %s \n",name);
       file = fopen(name,"w");
       write_vtk_file_double(file,n,x,v,m,t,dt);
       fclose(file);
