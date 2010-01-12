@@ -34,7 +34,9 @@ void cube (int n, long int seed, double size, double m0, double mdelta,
       t[2] += m[i]*v[i][2];
       M += m[i];
     }
+#if 0
   printf("center of mass: %g %g %g\n",s[0],s[1],s[2]);
+#endif
   for (i=0; i<n; i++)
     {
       x[i][0] -= s[0]; 
@@ -113,7 +115,9 @@ void plummer (int n, long int seed,
       t[1] += m[i]*v[i][1];
       t[2] += m[i]*v[i][2];
     }
+#if 0
   printf("center of mass: %g %g %g\n",s[0],s[1],s[2]);
+#endif
   for (i=0; i<n; i++)
     {
       x[i][0] -= s[0]; 
@@ -131,8 +135,10 @@ void plummer (int n, long int seed,
       s[1] += m[i]*x[i][1];
       s[2] += m[i]*x[i][2];
     }
+#if 0
   printf("new center of mass: %g %g %g\n",s[0],s[1],s[2]);
   printf("maximum radius: %g\n",maxr);
+#endif
 }
 
 void plummer2 (int n, long int seed, Body b[])

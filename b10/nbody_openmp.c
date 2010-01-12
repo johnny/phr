@@ -172,11 +172,10 @@ int main (int argc, char** argv)
   sscanf(argv[2],"%d",&timesteps);
   sscanf(argv[3],"%d",&mod);
   sscanf(argv[4],"%d",&numthreads);
-
 #ifdef _OPENMP
-  printf("number of processors: %d\n",omp_get_num_procs());
+  //  printf("number of processors: %d\n",omp_get_num_procs());
   omp_set_num_threads(numthreads);
-  printf("number of threads used: %d\n",omp_get_max_threads());
+  // printf("number of threads used: %d\n",omp_get_max_threads());
 #else
   printf("not compiled with OpenMP!\n");
   numthreads = 1;
