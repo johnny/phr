@@ -38,9 +38,8 @@ void acceleration (int n, double3 x[], double m[], double3 a[])
   double invfact;
 
   /* compute acceleration exploiting symmetry */
-  #pragma omp parallel for
+#pragma omp parallel for private(i,j,d0,d1,d2,r2,r,invfact,factori,factorj) shared(a)
   for (i=0; i<n; i++)
-    #pragma omp parallel for
     for (j=i+1; j<n; j++) {
       /* compute distance vector */
       d0 = x[j][0]-x[i][0];
@@ -238,7 +237,7 @@ int main (int argc, char** argv)
       /* 13*n*(n-1)+24*n+3 FLOP from leaprog(), 1 from the t+=dt above */
       flop = mod*(13.0*n*(n-1.0)+24.0*n+4.0);
 //      printf("%g seconds for %g ops = %g MFLOPS\n",
-      printf("%g MFLOPS\n",flop/elapsed/1E6);
+      printf("%g\n",flop/elapsed/1E6);
 
       /* write output file */
       sprintf(name,"parallel_%s_%06d.vtk",base,k/mod);
