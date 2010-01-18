@@ -41,7 +41,6 @@ void acceleration_mpi (int n, double3 x[], double m[], double3 a[])
 {
   int I,J,i,j,iend,jend;
   double d0,d1,d2,r,r2,factor;
-  double X[B][3], A[B][3];
   double XO[B][3], MO[B];
   int rank, procs, part;
 
@@ -49,6 +48,7 @@ void acceleration_mpi (int n, double3 x[], double m[], double3 a[])
   MPI_Comm_size(MPI_COMM_WORLD, &procs);
 
   part = n/procs;
+  double X[part][3], A[part][3];
 
   // jeder Prozess berechnet vor dem aufruf x.
   // Vor dem ersten Aufruf berechnet jeder Prozess a
