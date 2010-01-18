@@ -1,0 +1,50 @@
+#!/usr/bin/perl
+my $left = shift;
+my $right = shift;
+my $epsilon = shift;
+
+$left = "-" unless defined $left;
+$right = "-" unless defined $right;
+$epsilon = 0 unless defined $epsilon;
+
+if($left eq "-" and $right eq "-") {
+    print STDERR "Compare two files allowing slight deviations in numbers\n";
+    print STDERR "usage: fuzzy_diff <file1> <file2> <epsilon>\n";
+    exit 1;
+}
+
+open LEFT, $left;
+open RIGHT, $right;
+
+my $num = qr{[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?};
+
+for(my $i = 0;; ++$i) {
+    my $lline = <LEFT>;
+    my $rline = <RIGHT>;
+    if(!defined $lline and !defined $rline) { last }
+    if(!defined $lline and defined $rline) {
+        print "First file is shorter than second";
+        last;
+    }
+    if(defined $lline and !defined $rline) {
+        print "First file is longer than second";
+        last;
+    }
+    chomp $lline;
+    chomp $rline;
+    my @left = map { s/[ \t]+/ /; s/^ $//; $_ } split /($num)/, $lline;
+    my @right = map { s/[ \t]+/ /; s/^ $//; $_ } split /($num)/, $rline;
+    if(@left == @right) {
+        for(my $j = 0; $j < @left; ++$j) {
+            if($j%2 == 0
+               ? $left[$j] ne $right[$j]
+               : abs($left[$j] - $right[$j]) > $epsilon)
+            {
+                print "$i:-$lline\n$i:+$rline\n";
+                last;
+            }
+        }
+    } else {
+        print "$i:-$lline\n$i:+$rline\n";
+    }
+}
