@@ -29,7 +29,7 @@ $(tiled_MAIN): $(tiled_MAIN).o $(tiled_SOURCES) Makefile
 	$(CC) -o $(tiled_MAIN) $(tiled_MAIN).o $(tiled_SOURCES) $(tiled_LIOPTS)
 
 $(openmp_MAIN): $(openmp_MAIN).o $(openmp_SOURCES) Makefile
-	$(CC) -o $(openmp_MAIN) $(openmp_MAIN).o $(openmp_SOURCES) $(openmp_LIOPTS)
+	$(CC) -g -o $(openmp_MAIN) $(openmp_MAIN).o $(openmp_SOURCES) $(openmp_LIOPTS)
 
 $(mpi_MAIN): $(mpi_MAIN).c $(mpi_SOURCES) Makefile
 	mpicc $(CCOPTS) -o $(mpi_MAIN) $(mpi_MAIN).c $(mpi_SOURCES) $(mpi_LIOPTS)
