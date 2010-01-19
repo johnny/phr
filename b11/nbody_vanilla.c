@@ -205,7 +205,6 @@ int main (int argc, char** argv)
 
   /* write out the initial values */
   sprintf(name,"%s_%06d.vtk",base,k/mod);
-  printf("writing %s \n",name);
   file = fopen(name,"w");
   write_vtk_file_double(file,n,x,v,m,t,dt);
   fclose(file);
@@ -222,12 +221,10 @@ int main (int argc, char** argv)
       elapsed = stop-start;
       /* 13*n*(n-1)+24*n+3 FLOP from leaprog(), 1 from the t+=dt above */
       flop = mod*(13.0*n*(n-1.0)+24.0*n+4.0);
-      printf("%g seconds for %g ops = %g MFLOPS\n",
-             elapsed,flop,flop/elapsed/1E6);
+      printf("%g\n",flop/elapsed/1E6);
 
       /* write output file */
       sprintf(name,"%s_%06d.vtk",base,k/mod);
-      printf("writing %s \n",name);
       file = fopen(name,"w");
       write_vtk_file_double(file,n,x,v,m,t,dt);
       fclose(file);

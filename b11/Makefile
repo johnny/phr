@@ -20,7 +20,11 @@ mpi_MAIN = nbody_mpi
 mpi_SOURCES = io_mpi.c generate_mpi.c stopwatch.o
 mpi_LIOPTS = -lm -lgomp
 
-all : $(vanilla_MAIN) $(tiled_MAIN) $(openmp_MAIN) $(mpi_MAIN)
+mpia_MAIN = nbody_mpi_a
+mpia_SOURCES = io_mpi.c generate_mpi.c stopwatch.o
+mpia_LIOPTS = -lm -lgomp
+
+all : $(vanilla_MAIN) $(tiled_MAIN) $(openmp_MAIN) $(mpi_MAIN) $(mpia_MAIN)
 
 $(vanilla_MAIN): $(vanilla_MAIN).o $(vanilla_SOURCES) Makefile
 	$(CC) -o $(vanilla_MAIN) $(vanilla_MAIN).o $(vanilla_SOURCES) $(vanilla_LIOPTS)
@@ -29,10 +33,13 @@ $(tiled_MAIN): $(tiled_MAIN).o $(tiled_SOURCES) Makefile
 	$(CC) -o $(tiled_MAIN) $(tiled_MAIN).o $(tiled_SOURCES) $(tiled_LIOPTS)
 
 $(openmp_MAIN): $(openmp_MAIN).o $(openmp_SOURCES) Makefile
-	$(CC) -g -o $(openmp_MAIN) $(openmp_MAIN).o $(openmp_SOURCES) $(openmp_LIOPTS)
+	$(CC) -o $(openmp_MAIN) $(openmp_MAIN).o $(openmp_SOURCES) $(openmp_LIOPTS)
 
 $(mpi_MAIN): $(mpi_MAIN).c $(mpi_SOURCES) Makefile
 	mpicc $(CCOPTS) -o $(mpi_MAIN) $(mpi_MAIN).c $(mpi_SOURCES) $(mpi_LIOPTS)
+
+$(mpia_MAIN): $(mpia_MAIN).c $(mpia_SOURCES) Makefile
+	mpicc $(CCOPTS) -o $(mpia_MAIN) $(mpia_MAIN).c $(mpia_SOURCES) $(mpia_LIOPTS)
 
 .c.o:
 	$(CC) $(CCOPTS) -c $<
@@ -41,4 +48,4 @@ $(mpi_MAIN): $(mpi_MAIN).c $(mpi_SOURCES) Makefile
 	$(CC) $(CCOPTS) -c $<
 
 clean:
-	rm -f $(vanilla_MAIN) $(tiled_MAIN) $(openmp_MAIN) $(mpi_MAIN) *.o
+	rm -f $(vanilla_MAIN) $(tiled_MAIN) $(openmp_MAIN) $(mpia_MAIN) $(mpi_MAIN) *.o

@@ -46,9 +46,11 @@ void acceleration_mpi (int n, double3 x[], double m[], double3 a[])
   double xo[n][3], mo[n];
   double xt[n][3], mt[n];
   int rank,procs,l,k;
-
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &procs);
+ 
+  MPI_Request request[procs][2];
+  MPI_Status status[procs][2];
 
   /* compute acceleration *not*exploiting symmetry */
   for (I=0; I<n; I+=B) {
@@ -85,28 +87,15 @@ void acceleration_mpi (int n, double3 x[], double m[], double3 a[])
       }
 
       // verschicke xo und empfange neues xo
-      if(rank%2==0){
-        MPI_Ssend(&xo,n*3,MPI_DOUBLE,(rank+1)%
-                  procs,0,MPI_COMM_WORLD);
-        MPI_Ssend(&mo,n,MPI_DOUBLE,(rank+1)%
-                  procs,1,MPI_COMM_WORLD);
-        MPI_Recv(&xo,n*3,MPI_DOUBLE,(rank+procs-1)%
-                 procs,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-        MPI_Recv(&mo,n,MPI_DOUBLE,(rank+procs-1)%
-                 procs,1,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-      }
-      else {
-        MPI_Recv(&xt,n*3,MPI_DOUBLE,(rank+procs-1)%
-                 procs,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-        MPI_Recv(&mt,n,MPI_DOUBLE,(rank+procs-1)%
-                 procs,1,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-        MPI_Ssend(&xo,n*3,MPI_DOUBLE,(rank+1)%
-                  procs,0,MPI_COMM_WORLD);
-        MPI_Ssend(&mo,n,MPI_DOUBLE,(rank+1)%
-                  procs,1,MPI_COMM_WORLD);
-        memcpy(xo, xt, sizeof(double)*3*n);
-        memcpy(mo, mt, sizeof(double)*n);
-      }
+      MPI_Isend(&xo,n*3,MPI_DOUBLE,(rank+1)%
+                procs,0,MPI_COMM_WORLD, &request[k][0]);
+      MPI_Isend(&mo,n,MPI_DOUBLE,(rank+1)%
+                procs,1,MPI_COMM_WORLD, &request[k][1]);
+      MPI_Irecv(&xo,n*3,MPI_DOUBLE,(rank+procs-1)%
+                procs,0,MPI_COMM_WORLD,&request[k][0]);
+      MPI_Irecv(&mo,n,MPI_DOUBLE,(rank+procs-1)%
+                procs,1,MPI_COMM_WORLD,&request[k][1]);
+      MPI_Waitall(2,request[k],status[k]);
     }
     /* store result */
     memcpy(a+I, A, sizeof(double)*3*iend);
@@ -258,11 +247,10 @@ int main (int argc, char** argv)
       elapsed = stop-start;
       flop = mod*(19.0*N*N+24.0*N);
       if(rank == 0) {
-        //                printf("%g seconds for %g ops = %g MFLOPS\n",elapsed,flop,flop/elapsed/1E6);
+        //        printf("%g seconds for %g ops = %g MFLOPS\n",elapsed,flop,flop/elapsed/1E6);
         printf("%g\n",flop/elapsed/1E6);
 
         sprintf(name,"%s_%06d.vtk",base,k/mod);
-        //        printf("writing %s \n",name);
         file = fopen(name,"w");
       }
       write_vtk_file_double_mpi(file,n,x,v,m,t,dt);

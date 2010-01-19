@@ -124,8 +124,6 @@ void plummer_mpi (int n, long int seed,
     }
   MPI_Allreduce(s, s_all, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
   MPI_Allreduce(t, t_all, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  if (rank == 0)
-    printf("center of mass: %g %g %g\n",s_all[0],s_all[1],s_all[2]);
   for (i=0; i<n; i++)
     {
       x[i][0] -= s_all[0]; 
@@ -144,6 +142,4 @@ void plummer_mpi (int n, long int seed,
       s[2] += m[i]*x[i][2];
     }
   MPI_Allreduce(s, s_all, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  if (rank == 0)
-    printf("new center of mass: %g %g %g\n",s_all[0],s_all[1],s_all[2]);
 }
