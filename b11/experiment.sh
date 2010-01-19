@@ -1,6 +1,6 @@
 #!/bin/bash
 
-nop=(2 4 6 8 10 12)
+nop=(2 4 8 16 32)
 iter=100
 rm ue26.dat
 
@@ -22,7 +22,7 @@ do
     for procs in ${nop[@]}
     do
         echo running parallell calculation on $procs procs
-        mpirun -machinefile mpihosts -np $procs nbody_mpi_a $N $iter 1 > ps.$N.$procs
+        mpirun -machinefile mpihosts -np $procs nbody_mpi_a $N $iter 1 > p.$N.$procs
         sum=0
         while read num
         do
@@ -38,7 +38,7 @@ i=3
 plot=""
 for procs in ${nop[@]}
 do
-    plot="$plot \"ue26.dat\" u 1:(\$2/\$$i) title \"$procs threads\" with linespoints,"
+    plot="$plot \"ue26.dat\" u 1:(\$$i/\$2) title \"$procs threads\" with linespoints,"
     i=$(($i + 1 ))
 done
 plot=${plot%\,}
