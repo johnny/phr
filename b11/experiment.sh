@@ -22,7 +22,7 @@ do
     for procs in ${nop[@]}
     do
         echo running parallell calculation on $procs procs
-        mpirun -machinefile mpihosts -np $procs nbody_mpi_a $N $iter 1 > p.$N.$procs
+        mpirun -machinefile mpihosts -np $procs nbody_mpi $N $iter 1 > p.$N.$procs
         sum=0
         while read num
         do
