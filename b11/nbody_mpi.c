@@ -41,50 +41,76 @@ void acceleration_mpi (int n, double3 x[], double m[], double3 a[])
 {
   int I,J,i,j,iend,jend;
   double d0,d1,d2,r,r2,factor;
+  double X[B][3], A[B][3];
   double XO[B][3], MO[B];
-  int rank, procs, part;
+  double xo[n][3], mo[n];
+  double xt[n][3], mt[n];
+  int rank,procs,l,k;
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &procs);
 
-  part = n/procs;
-  double X[part][3], A[part][3];
-
-  // jeder Prozess berechnet vor dem aufruf x.
-  // Vor dem ersten Aufruf berechnet jeder Prozess a
-
   /* compute acceleration *not*exploiting symmetry */
-
-  /* in case n is not a multiple of B */
-  iend = part; // MIN(B,n-rank*part);
-
-  /* load to avoid aliasing */
-  memcpy(X, x+rank*part, sizeof(double)*3*iend);
-  memcpy(A, a+rank*part, sizeof(double)*3*iend);
-
-  for (J=0; J<n; J+=B) {
+  for (I=0; I<n; I+=B) {
     /* in case n is not a multiple of B */
-    jend = MIN(B,n-J);
+    iend = MIN(B,n-I);
 
     /* load to avoid aliasing */
-    memcpy(XO, x+J, sizeof(double)*3*jend);
-    memcpy(MO, m+J, sizeof(double)*jend);
+    memcpy(X, x+I, sizeof(double)*3*iend);
+    memcpy(A, a+I, sizeof(double)*3*iend);
+    
+    memcpy(xo, x, sizeof(double)*3*n);
+    memcpy(mo, m, sizeof(double)*n);
 
-    /* compute locally */
-    for (i=0; i<iend; i++) {
-      for (j=0; j<jend; j++) {
-        d0 = XO[j][0]-X[i][0]; d1 = XO[j][1]-X[i][1]; d2 = XO[j][2]-X[i][2];
-        r2 = d0*d0 + d1*d1 + d2*d2 + epsilon2;
-        r = sqrt(r2);
-        factor = MO[j]*G/(r*r2);
-        A[i][0] += factor*d0; A[i][1] += factor*d1; A[i][2] += factor*d2;
+    for (k=0;k<procs;k++){
+
+      for (J=0; J<n; J+=B) {
+        /* in case n is not a multiple of B */
+        jend = MIN(B,n-J);
+
+        /* load to avoid aliasing */
+        memcpy(XO, xo+J, sizeof(double)*3*jend);
+        memcpy(MO, mo+J, sizeof(double)*jend);
+
+        /* compute locally */
+        for (i=0; i<iend; i++) {
+          for (j=0; j<jend; j++) {
+            d0 = XO[j][0]-X[i][0]; d1 = XO[j][1]-X[i][1]; d2 = XO[j][2]-X[i][2];
+            r2 = d0*d0 + d1*d1 + d2*d2 + epsilon2;
+            r = sqrt(r2);
+            factor = MO[j]*G/(r*r2);
+            A[i][0] += factor*d0; A[i][1] += factor*d1; A[i][2] += factor*d2;
+          }
+        }
+      }
+
+      // verschicke xo und empfange neues xo
+      if(rank%2==0){
+        MPI_Ssend(&xo,n*3,MPI_DOUBLE,(rank+1)%
+                  procs,0,MPI_COMM_WORLD);
+        MPI_Ssend(&mo,n,MPI_DOUBLE,(rank+1)%
+                  procs,1,MPI_COMM_WORLD);
+        MPI_Recv(&xo,n*3,MPI_DOUBLE,(rank+procs-1)%
+                 procs,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+        MPI_Recv(&mo,n,MPI_DOUBLE,(rank+procs-1)%
+                 procs,1,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+      }
+      else {
+        MPI_Recv(&xt,n*3,MPI_DOUBLE,(rank+procs-1)%
+                 procs,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+        MPI_Recv(&mt,n,MPI_DOUBLE,(rank+procs-1)%
+                 procs,1,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+        MPI_Ssend(&xo,n*3,MPI_DOUBLE,(rank+1)%
+                  procs,0,MPI_COMM_WORLD);
+        MPI_Ssend(&mo,n,MPI_DOUBLE,(rank+1)%
+                  procs,1,MPI_COMM_WORLD);
+        memcpy(xo, xt, sizeof(double)*3*n);
+        memcpy(mo, mt, sizeof(double)*n);
       }
     }
+    /* store result */
+    memcpy(a+I, A, sizeof(double)*3*iend);
   }
-  /* store result */
-  // synchronisiere a
-  for(i=0;i<procs;i++)
-    MPI_Bcast(&a[i*part], iend, MPI_DOUBLE, i, MPI_COMM_WORLD );
 }
 
 /**
